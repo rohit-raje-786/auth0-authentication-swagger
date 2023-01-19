@@ -1,0 +1,426 @@
+openapi: 3.0.0
+info:
+  title: Auth0 Authentication API
+  description: "The Authentication API exposes all of the identity functionality of\
+    \ Auth0 as well as all of the supported identity protocols such as OpenID Connect,\
+    \ OAuth, and SAML. Generally speaking you will consume this API through one of\
+    \ our SDKs like Auth0.js or libraries such as the Lock widget. However, if you\
+    \ are building all of your authentication UI manually you will likely interact\
+    \ with this API directly."
+  version: 1.0.0
+servers:
+- url: https://reunion-dev.us.auth0.com
+tags:
+- name: DB Connections
+- name: Get Access Token
+- name: Passwordless
+- name: SAML
+- name: User Profile
+- name: WS-Fed
+  description: "The WS-Fed protocol is used for Microsoft applications (e.g.: Office365,\
+    \ Dynamics CRM, etc.). All the parameters of the SAML assertion can be modified\
+    \ through rules."
+- name: Deprecated
+  description: |-
+    These endpoints are deprecated and might not be available depending on the tenant's creation date and configuration in the **Migrations** section of the [tenant Advanced settings](https://manage.auth0.com/#/tenant/advanced).
+    Newly created tenants don't have access to deprecated endpoints, so some or all of the legacy features can't be turned on in the **Migrations** section.
+- name: Deprecated > Authenticate
+- name: Deprecated > Delegated Authentication
+- name: Deprecated > Link Accounts
+- name: Deprecated > Passwordless
+paths:
+  /dbconnections/signup:
+    post:
+      tags:
+      - DB Connections
+      summary: Signup using a username/password
+      description: "Given the user credentials, the connection specified and the Auth0\
+        \ account information, it will create a new user. You can then authenticate\
+        \ with this user using the /oauth/ro endpoint. This endpoint only works for\
+        \ database connections."
+      operationId: dbconnectionsSignupPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/dbconnections_signup_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DBConnections
+  /dbconnections/change_password:
+    post:
+      tags:
+      - DB Connections
+      summary: Ask to change a password for a given user
+      description: |-
+        Given the user email address and the connection specified, Auth0 will send a change password email.
+
+        * If password was provided, once the user clicks on the confirm password change link, the new password specified in this POST will be set to this user.
+        * If password was NOT provided, once the user clicks on the password change link they will be redirected to a page asking them for a new password.
+
+        This endpoint only works for database connections.
+      operationId: dbconnectionsChange_passwordPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/dbconnections_change_password_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DBConnections
+  /oauth/token:
+    post:
+      tags:
+      - Get Access Token
+      summary: Refresh Token
+      description: "This is the OAuth2 refresh token flow, used to obtain a refreshed\
+        \ access token (and id token if applicable) using the refresh token you got\
+        \ during authorization."
+      operationId: oauthTokenPOST
+      parameters:
+      - name: Content-Type
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: application/x-www-form-urlencoded
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/oauth_token_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: GetAccessToken
+  /passwordless/start:
+    post:
+      tags:
+      - Passwordless
+      summary: Start Passwordless flow sending an SMS message
+      description: "Given the user phone_number, it will send a SMS message with a\
+        \ verification code. You can then authenticate with this user using the /oauth/ro\
+        \ endpoint specifying phone_number as username and code as password:"
+      operationId: passwordlessStartPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/passwordless_start_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: Passwordless
+  /samlp/{client_id}:
+    get:
+      tags:
+      - SAML
+      summary: Accepts a SAML request to initiate a login
+      description: "Optionally, accepts a connection parameter to login with a specific\
+        \ provider. If no connection is specified, the Auth0 Login Page will be shown."
+      operationId: samlpClient_idGET
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: SAML
+  /samlp/metadata/{client_id}:
+    get:
+      tags:
+      - SAML
+      summary: Returns the SAML 2.0 metadata
+      operationId: samlpMetadataClient_idGET
+      parameters:
+      - name: client_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: SAML
+  /userinfo:
+    get:
+      tags:
+      - User Profile
+      summary: Returns a user profile based on the Auth0 access token
+      description: Returns the user information based on the Auth0 access token (obtained
+        during login).
+      operationId: userinfoGET
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: Bearer YOUR_TOKEN_HERE
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: UserProfile
+  /wsfed/{client_id}:
+    get:
+      tags:
+      - WS-Fed
+      summary: Requests a logout using WS-Fed
+      operationId: wsfedClient_idGET
+      parameters:
+      - name: wa
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+        example: wsignout1.0
+      - name: client_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: WSFed
+  /wsfed/FederationMetadata/2007-06/FederationMetadata.xml:
+    get:
+      tags:
+      - WS-Fed
+      summary: Returns the WS-Federation Metadata
+      operationId: wsfedFederationMetadata2007_06FederationMetadata_xmlGET
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: WSFed
+  /oauth/access_token:
+    post:
+      tags:
+      - Deprecated > Authenticate
+      summary: Login using a social provider's access token
+      description: "Given the social provider's access_token and the connection specified,\
+        \ it will do the authentication on the provider and return a JSON with the\
+        \ access_token and id_token. Currently, this endpoint only works for Facebook,\
+        \ Google, Twitter and Weibo. **This endpoint has been deprecated**."
+      operationId: oauthAccess_tokenPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/oauth_access_token_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DeprecatedAuthenticate
+  /oauth/ro:
+    post:
+      tags:
+      - Deprecated > Passwordless
+      summary: Login using a phone number and verification code
+      description: |-
+        Given the user credentials and the connection specified, it will do the authentication on the provider and return a JSON with the access_token and id_token. This endpoint only works for database connections, passwordless connections, Active Directory/LDAP, Windows Azure AD and ADFS.
+        **This endpoint is deprecated**.
+      operationId: oauthRoPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/oauth_ro_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DeprecatedPasswordless
+  /tokeninfo:
+    post:
+      tags:
+      - Deprecated > Authenticate
+      summary: "[Deprecated] Return a user profile based on the user's JWT"
+      description: Validates a JSON Web Token (signature and expiration) and returns
+        the user information associated with the user id (sub property) of the token.
+      operationId: tokeninfoPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/tokeninfo_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DeprecatedAuthenticate
+  /delegation:
+    post:
+      tags:
+      - Deprecated > Delegated Authentication
+      summary: Obtain a delegation token (from a refresh_token)
+      description: "Given an refrersh token, this endpoint will generate a refreshed\
+        \ id_token and access_token. **This endpoint has been deprecated**, please\
+        \ use the [OAuth2 conformant Refresh Token flow](https://auth0.com/docs/tokens/refresh-token/current)."
+      operationId: delegationPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/delegation_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DeprecatedDelegatedAuthentication
+  /unlink:
+    post:
+      tags:
+      - Deprecated > Link Accounts
+      summary: Unlink an account
+      description: "**This endpoint is deprecated**. The `DELETE /api/v2/users/{id}/identities/{provider}/{user_id}`\
+        \ (from Management API v2) should be used instead."
+      operationId: unlinkPOST
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/unlink_body'
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+      x-swagger-router-controller: DeprecatedLinkAccounts
+components:
+  schemas:
+    dbconnections_signup_body:
+      properties:
+        client_id:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        connection:
+          type: string
+    dbconnections_change_password_body:
+      properties:
+        client_id:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        connection:
+          type: string
+    oauth_token_body:
+      properties:
+        grant_type:
+          type: string
+          example: refresh_token
+        client_id:
+          type: string
+        client_secret:
+          type: string
+          description: Required for confidential clients.
+        refresh_token:
+          type: string
+        scope:
+          type: string
+          description: Optional. You can specify a scope that is equal or less than
+            the one requested in the original authorize request.
+    passwordless_start_body:
+      properties:
+        client_id:
+          type: string
+        connection:
+          type: string
+          example: sms
+        phone_number:
+          type: string
+    oauth_access_token_body:
+      properties:
+        client_id:
+          type: string
+        access_token:
+          type: string
+          description: The social provider's Access Token.
+        connection:
+          type: string
+        scope:
+          type: string
+          example: openid
+    oauth_ro_body:
+      properties:
+        client_id:
+          type: string
+        connection:
+          type: string
+          example: sms
+        grant_type:
+          type: string
+          example: password
+        username:
+          type: string
+        password:
+          type: string
+        scope:
+          type: string
+          example: openid
+    tokeninfo_body:
+      properties:
+        id_token:
+          type: string
+    delegation_body:
+      properties:
+        client_id:
+          type: string
+        grant_type:
+          type: string
+          example: urn:ietf:params:oauth:grant-type:jwt-bearer
+        refresh_token:
+          type: string
+        scope:
+          type: string
+    unlink_body:
+      properties:
+        access_token:
+          type: string
+        user_id:
+          type: string

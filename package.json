@@ -1,0 +1,20 @@
+{
+  "name": "auth0-authentication-api",
+  "version": "1.0.0",
+  "description": "The Authentication API exposes all of the identity functionality of Auth0 as well as all of the supported identity protocols such as OpenID Connect, OAuth, and SAML. Generally speaking you will consume this API through one of our SDKs like Auth0.js or libraries such as the Lock widget. However, if you are building all of your authentication UI manually you will likely interact with this API directly.",
+  "main": "index.js",
+  "scripts": {
+	"prestart": "npm install",
+	"start": "node index.js"
+  },
+  "keywords": [
+    "swagger"
+  ],
+  "license": "Unlicense",
+  "private": true,
+  "dependencies": {
+    "connect": "^3.2.0",
+    "js-yaml": "^3.3.0",
+    "oas3-tools": "^2.2.3"
+  }
+}
